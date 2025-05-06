@@ -78,7 +78,7 @@ class Tokenizer {
    * \param json_blob The json blob.
    * \return The created tokenzier.
    */
-  static std::unique_ptr<Tokenizer> FromBlobJSON(const std::string& json_blob);
+  static std::unique_ptr<Tokenizer> FromBlobJSON(const std::vector<std::byte>& json_blob);
   /*!
    * \brief Create BPE tokenizer
    *
@@ -96,14 +96,14 @@ class Tokenizer {
    * \param model_blob The blob that contains vocabs.
    * \return The created tokenizer.
    */
-  static std::unique_ptr<Tokenizer> FromBlobSentencePiece(const std::string& model_blob);
+  static std::unique_ptr<Tokenizer> FromBlobSentencePiece(const std::vector<std::byte>& model_blob);
   /*!
    * \brief Create RWKVWorldTokenizer.
    *
    * \param model_blob The blob that contains vocabs.
    * \return The created tokenizer.
    */
-  static std::unique_ptr<Tokenizer> FromBlobRWKVWorld(const std::string& model_blob);
+  static std::unique_ptr<Tokenizer> FromBlobRWKVWorld(const std::vector<std::byte>& model_blob);
 };
 
 }  // namespace tokenizers

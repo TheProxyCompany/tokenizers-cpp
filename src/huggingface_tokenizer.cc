@@ -108,8 +108,8 @@ class HFTokenizer : public Tokenizer {
   TokenizerHandle handle_{nullptr};
 };
 
-std::unique_ptr<Tokenizer> Tokenizer::FromBlobJSON(const std::string& json) {
-  return std::make_unique<HFTokenizer>(tokenizers_new_from_str(json.data(), json.length()));
+std::unique_ptr<Tokenizer> Tokenizer::FromBlobJSON(const std::vector<std::byte>& json) {
+  return std::make_unique<HFTokenizer>(tokenizers_new_from_str(reinterpret_cast<const char*>(json.data()), json.size()));
 }
 
 std::unique_ptr<Tokenizer> Tokenizer::FromBlobByteLevelBPE(const std::string& vocab,
