@@ -13,8 +13,13 @@ namespace tokenizers {
 #ifdef MLC_ENABLE_SENTENCEPIECE_TOKENIZER
 class SentencePieceTokenizer : public Tokenizer {
  public:
-  explicit SentencePieceTokenizer(const std::string& model_blob) {
-    sentence_piece_.LoadFromSerializedProto(model_blob);
+  explicit SentencePieceTokenizer(const std::vector<std::byte>& model_blob) {
+    sentence_piece_.LoadFromSerializedProto(
+        absl::string_view(
+            reinterpret_cast<const char*>(model_blob.data()),
+            model_blob.size()
+        )
+    );
   }
 
   std::vector<int32_t> Encode(const std::string& text) final {
@@ -44,11 +49,11 @@ class SentencePieceTokenizer : public Tokenizer {
   sentencepiece::SentencePieceProcessor sentence_piece_;
 };
 
-std::unique_ptr<Tokenizer> Tokenizer::FromBlobSentencePiece(const std::string& model_blob) {
+std::unique_ptr<Tokenizer> Tokenizer::FromBlobSentencePiece(const std::vector<std::byte>& model_blob) {
   return std::make_unique<SentencePieceTokenizer>(model_blob);
 }
 #else
-std::unique_ptr<Tokenizer> Tokenizer::FromBlobSentencePiece(const std::string& model_blob) {
+std::unique_ptr<Tokenizer> Tokenizer::FromBlobSentencePiece(const std::vector<std::byte>&model_blob) {
   assert(false);
   throw;
 }

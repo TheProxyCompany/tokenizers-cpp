@@ -63,17 +63,13 @@ struct TrieTree {
 
 class RWKVWorldTokenizer : public Tokenizer {
  public:
-  explicit RWKVWorldTokenizer(const std::string& path) {
+  explicit RWKVWorldTokenizer(const std::vector<std::byte>& model_blob) {
     std::ifstream infile;
-    infile.open(path, std::ios::binary | std::ios::in);
-    infile.seekg(0, std::ios::end);
-    int64_t length = infile.tellg();
-    infile.seekg(0, std::ios::beg);
-    char* data = new char[length];
-    infile.read(data, length);
+    char* data = new char[model_blob.size()];
+    infile.read(data, model_blob.size());
     infile.close();
 
-    auto unpacker = msgpack::unpack(data, length);
+    auto unpacker = msgpack::unpack(data, model_blob.size());
     auto obj = unpacker.get();
     delete[] data;
     _idx2word = obj.as<std::unordered_map<int, std::string>>();
@@ -136,7 +132,7 @@ class RWKVWorldTokenizer : public Tokenizer {
   std::unique_ptr<TrieTree> _tree;
 };
 
-std::unique_ptr<Tokenizer> Tokenizer::FromBlobRWKVWorld(const std::string& model_blob) {
+std::unique_ptr<Tokenizer> Tokenizer::FromBlobRWKVWorld(const std::vector<std::byte>& model_blob) {
   return std::make_unique<RWKVWorldTokenizer>(model_blob);
 }
 
