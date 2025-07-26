@@ -1,6 +1,7 @@
 // A simple C wrapper of tokenzier library
 use serde_json::Value;
-use std::{collections::HashMap, str::FromStr};
+use ahash::AHashMap as HashMap;
+use std::str::FromStr;
 use tokenizers::models::bpe::BPE;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 use tokenizers::tokenizer::Tokenizer;
@@ -36,7 +37,7 @@ impl TokenizerWrapper {
     ) -> TokenizerWrapper {
         let vocab_json: Value = serde_json::from_str(vocab).unwrap();
         let added_tokens_json: Value = serde_json::from_str(added_tokens).unwrap();
-        let mut vocab = HashMap::new();
+        let mut vocab = HashMap::default();
         match vocab_json {
             Value::Object(m) => {
                 for (token, id) in m {
