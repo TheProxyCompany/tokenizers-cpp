@@ -8,6 +8,7 @@
 #include <tokenizers_cpp.h>
 
 #include <cassert>
+#include <memory>
 
 namespace tokenizers {
 /*!
@@ -82,6 +83,20 @@ class HFTokenizer : public Tokenizer {
   }
 
   std::string Decode(const std::vector<int32_t>& ids) final { return Decode(ids, false); }
+
+  std::string DecodeThreadSafe(const std::vector<int32_t>& ids, bool skip_special_tokens) {
+    char* raw = tokenizers_decode_threadsafe(handle_, reinterpret_cast<const uint32_t*>(ids.data()),
+                                             ids.size(), static_cast<int>(skip_special_tokens));
+    std::unique_ptr<char, decltype(&tokenizers_free_string)> guard(raw, tokenizers_free_string);
+    if (!guard || guard.get() == nullptr) {
+      return std::string();
+    }
+    return std::string(guard.get());
+  }
+
+  std::string DecodeThreadSafe(const std::vector<int32_t>& ids) override {
+    return DecodeThreadSafe(ids, false);
+  }
 
   size_t GetVocabSize() final {
     size_t size;

@@ -52,6 +52,14 @@ class Tokenizer {
   virtual std::string Decode(const std::vector<int32_t>& ids) = 0;
 
   /*!
+   * \brief Decode token ids into text without sharing mutable internal buffers.
+   *        Default implementation routes to Decode for tokenizers that are already thread-safe.
+   */
+  virtual std::string DecodeThreadSafe(const std::vector<int32_t>& ids) {
+    return Decode(ids);
+  }
+
+  /*!
    * \brief Returns the vocabulary size. Special tokens are considered.
    */
   virtual size_t GetVocabSize() = 0;

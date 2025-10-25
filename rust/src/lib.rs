@@ -1,6 +1,7 @@
 // A simple C wrapper of tokenzier library
-use serde_json::Value;
 use ahash::AHashMap as HashMap;
+use serde_json::Value;
+use std::ffi::{c_char, CString};
 use std::str::FromStr;
 use tokenizers::models::bpe::BPE;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
@@ -205,6 +206,36 @@ extern "C" fn tokenizers_decode(
     unsafe {
         let input_data = std::slice::from_raw_parts(input_ids, len);
         (*handle).decode(input_data, skip_special_tokens != 0);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn tokenizers_decode_threadsafe(
+    handle: *mut TokenizerWrapper,
+    input_ids: *const u32,
+    len: usize,
+    skip_special_tokens: i32,
+) -> *mut c_char {
+    unsafe {
+        let ids = std::slice::from_raw_parts(input_ids, len);
+        match (*handle)
+            .tokenizer
+            .decode(ids, skip_special_tokens != 0)
+        {
+            Ok(decoded) => CString::new(decoded)
+                .map(|cstr| cstr.into_raw())
+                .unwrap_or_else(|_| CString::new("").unwrap().into_raw()),
+            Err(_) => CString::new("").unwrap().into_raw(),
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn tokenizers_free_string(ptr: *mut c_char) {
+    if !ptr.is_null() {
+        unsafe {
+            let _ = CString::from_raw(ptr);
+        }
     }
 }
 
