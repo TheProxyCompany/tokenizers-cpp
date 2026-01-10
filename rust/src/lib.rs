@@ -215,7 +215,8 @@ pub extern "C" fn tokenizers_encode_threadsafe(
     input_cstr: *const u8,
     len: usize,
     add_special_tokens: i32,
-) -> TokenizerEncodeResult {
+    out_result: *mut TokenizerEncodeResult,
+) {
     unsafe {
         let input_data = std::str::from_utf8(std::slice::from_raw_parts(input_cstr, len)).unwrap();
         match (*handle)
@@ -225,15 +226,17 @@ pub extern "C" fn tokenizers_encode_threadsafe(
             Ok(encoded) => {
                 let ids = encoded.get_ids().to_vec();
                 let len = ids.len();
-                TokenizerEncodeResult {
+                *out_result = TokenizerEncodeResult {
                     token_ids: Box::into_raw(ids.into_boxed_slice()) as *mut u32,
                     len,
-                }
+                };
             }
-            Err(_) => TokenizerEncodeResult {
-                token_ids: std::ptr::null_mut(),
-                len: 0,
-            },
+            Err(_) => {
+                *out_result = TokenizerEncodeResult {
+                    token_ids: std::ptr::null_mut(),
+                    len: 0,
+                };
+            }
         }
     }
 }

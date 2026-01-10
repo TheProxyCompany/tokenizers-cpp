@@ -45,8 +45,9 @@ class HFTokenizer : public Tokenizer {
   std::vector<int32_t> Encode(const std::string& text) final { return Encode(text, false); }
 
   std::vector<int32_t> EncodeThreadSafe(const std::string& text, bool add_special_tokens) {
-    TokenizerEncodeResult result = tokenizers_encode_threadsafe(
-        handle_, text.data(), text.length(), static_cast<int>(add_special_tokens));
+    TokenizerEncodeResult result;
+    tokenizers_encode_threadsafe(
+        handle_, text.data(), text.length(), static_cast<int>(add_special_tokens), &result);
     if (result.token_ids == nullptr) {
       return std::vector<int32_t>();
     }
