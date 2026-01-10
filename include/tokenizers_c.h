@@ -41,6 +41,9 @@ void tokenizers_decode(TokenizerHandle handle, const uint32_t* data, size_t len,
 char* tokenizers_decode_threadsafe(TokenizerHandle handle, const uint32_t* data, size_t len,
                                    int skip_special_token);
 
+TokenizerEncodeResult tokenizers_encode_threadsafe(TokenizerHandle handle, const char* data,
+                                                   size_t len, int add_special_token);
+
 void tokenizers_free_string(char* ptr);
 
 void tokenizers_get_decode_str(TokenizerHandle handle, const char** data, size_t* len);

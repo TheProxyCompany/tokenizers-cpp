@@ -44,6 +44,21 @@ class HFTokenizer : public Tokenizer {
   // use i32 to be consistent with sentencepiece
   std::vector<int32_t> Encode(const std::string& text) final { return Encode(text, false); }
 
+  std::vector<int32_t> EncodeThreadSafe(const std::string& text, bool add_special_tokens) {
+    TokenizerEncodeResult result = tokenizers_encode_threadsafe(
+        handle_, text.data(), text.length(), static_cast<int>(add_special_tokens));
+    if (result.token_ids == nullptr) {
+      return std::vector<int32_t>();
+    }
+    std::vector<int32_t> ret(result.token_ids, result.token_ids + result.len);
+    tokenizers_free_encode_results(&result, 1);
+    return ret;
+  }
+
+  std::vector<int32_t> EncodeThreadSafe(const std::string& text) override {
+    return EncodeThreadSafe(text, false);
+  }
+
   std::vector<std::vector<int32_t>> EncodeBatch(const std::vector<std::string>& texts,
                                                 bool add_special_tokens) {
     std::vector<const char*> texts_raw;

@@ -30,6 +30,14 @@ class Tokenizer {
   virtual std::vector<int32_t> Encode(const std::string& text) = 0;
 
   /*!
+   * \brief Encode text into ids without sharing mutable internal state.
+   *        Default implementation routes to Encode for tokenizers that are already thread-safe.
+   */
+  virtual std::vector<int32_t> EncodeThreadSafe(const std::string& text) {
+    return Encode(text);
+  }
+
+  /*!
    * \brief Encode a batch of texts into ids.
    * \param texts The input texts.
    * \returns The encoded token ids.
