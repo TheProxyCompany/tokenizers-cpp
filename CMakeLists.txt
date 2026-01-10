@@ -54,9 +54,14 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   if (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
     set(TOKENIZERS_CPP_CARGO_TARGET aarch64-apple-darwin)
   endif()
+  # Set deployment target for Rust build to match C++ linker expectations
   if (CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CARGO_EXTRA_ENVS
       MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+    )
+  else()
+    set(CARGO_EXTRA_ENVS
+      MACOSX_DEPLOYMENT_TARGET=15.0
     )
   endif()
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Android")
