@@ -3,6 +3,7 @@ use ahash::AHashMap as HashMap;
 use serde_json::Value;
 use std::ffi::{c_char, CString};
 use std::str::FromStr;
+use tokenizers::AddedToken;
 use tokenizers::models::bpe::BPE;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 use tokenizers::tokenizer::Tokenizer;
@@ -50,12 +51,56 @@ impl TokenizerWrapper {
             }
             _ => panic!("Invalid vocab.json file."),
         };
+        let mut added_tokens = Vec::new();
         match added_tokens_json {
             Value::Object(m) => {
-                for (token, id) in m {
-                    if let Value::Number(id) = id {
-                        let id = id.as_u64().unwrap() as u32;
-                        vocab.insert(token, id);
+                for (token_or_id, value) in m {
+                    match value {
+                        Value::Number(id) => {
+                            let id = id.as_u64().unwrap() as u32;
+                            vocab.insert(token_or_id.clone(), id);
+                            added_tokens.push(AddedToken::from(token_or_id, true));
+                        }
+                        Value::Object(token_config) => {
+                            let id = token_or_id.parse::<u32>().unwrap();
+                            let content = token_config
+                                .get("content")
+                                .and_then(|value| value.as_str())
+                                .unwrap()
+                                .to_string();
+                            let special = token_config
+                                .get("special")
+                                .and_then(|value| value.as_bool())
+                                .unwrap_or(true);
+                            let token = AddedToken::from(content.clone(), special)
+                                .single_word(
+                                    token_config
+                                        .get("single_word")
+                                        .and_then(|value| value.as_bool())
+                                        .unwrap_or(false),
+                                )
+                                .lstrip(
+                                    token_config
+                                        .get("lstrip")
+                                        .and_then(|value| value.as_bool())
+                                        .unwrap_or(false),
+                                )
+                                .rstrip(
+                                    token_config
+                                        .get("rstrip")
+                                        .and_then(|value| value.as_bool())
+                                        .unwrap_or(false),
+                                )
+                                .normalized(
+                                    token_config
+                                        .get("normalized")
+                                        .and_then(|value| value.as_bool())
+                                        .unwrap_or(!special),
+                                );
+                            vocab.insert(content, id);
+                            added_tokens.push(token);
+                        }
+                        _ => {}
                     }
                 }
             }
@@ -81,6 +126,7 @@ impl TokenizerWrapper {
         tokenizer
             .with_pre_tokenizer(Some(byte_level))
             .with_decoder(Some(byte_level));
+        tokenizer.add_special_tokens(&added_tokens);
         TokenizerWrapper {
             tokenizer: tokenizer,
             decode_str: String::new(),
